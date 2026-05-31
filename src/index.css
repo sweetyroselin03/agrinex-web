@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-bgMain text-textMain font-sans antialiased;
+}
+
+.glass-card {
+  @apply bg-card backdrop-blur-xl border border-borderDark rounded-[20px] shadow-lg;
+}
+
+::-webkit-scrollbar { width: 0px; background: transparent; }
