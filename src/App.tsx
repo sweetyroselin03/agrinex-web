@@ -12,6 +12,8 @@ import Scanner from './pages/Scanner';
 import Chatbot from './pages/Chatbot';
 import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
+import Splash from './pages/Splash';
+import Onboarding from './pages/Onboarding';
 import { useAuthStore } from './store/useAuthStore';
 
 // Protected Route Wrapper Component
@@ -41,6 +43,15 @@ function AuthRoute({ children }: { children: React.JSX.Element }) {
   return children;
 }
 
+// Check for onboarding status
+function OnboardingRoute({ children }: { children: React.JSX.Element }) {
+  const onboardingCompleted = localStorage.getItem('agrinex_onboarding_completed') === 'true';
+  if (onboardingCompleted) {
+    return <Navigate to="/welcome" replace />;
+  }
+  return children;
+}
+
 function AppRoutes() {
   const location = useLocation();
   const { checkAuth } = useAuthStore();
@@ -53,8 +64,10 @@ function AppRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         
-        {/* Public Routes */}
-        <Route path="/" element={<AuthRoute><Landing /></AuthRoute>} />
+        {/* Splash and Onboarding */}
+        <Route path="/" element={<Splash />} />
+        <Route path="/onboarding" element={<OnboardingRoute><Onboarding /></OnboardingRoute>} />
+        <Route path="/welcome" element={<AuthRoute><Landing /></AuthRoute>} />
         
         {/* Auth routes */}
         <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
