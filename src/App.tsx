@@ -1,33 +1,78 @@
-import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
 
 import MainLayout from './layouts/MainLayout';
-import Splash from './pages/Splash';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Community from './pages/Community';
 import Scanner from './pages/Scanner';
 import Chatbot from './pages/Chatbot';
 import Profile from './pages/Profile';
+import Notifications from './pages/Notifications';
+import { useAuthStore } from './store/useAuthStore';
+
+// Protected Route Wrapper Component
+function ProtectedRoute({ children }: { children: React.JSX.Element }) {
+  const { isAuthenticated, checkAuth } = useAuthStore();
+  const location = useLocation();
+
+  useEffect(() => {
+    checkAuth();
+  }, [location.pathname]);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  return children;
+}
+
+// Redirect Route Wrapper for Auth (e.g. login/register) to prevent logged-in users from seeing them
+function AuthRoute({ children }: { children: React.JSX.Element }) {
+  const { isAuthenticated } = useAuthStore();
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+}
 
 function AppRoutes() {
   const location = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { checkAuth } = useAuthStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Splash />} />
-        <Route path="/login" element={<Login onLogin={() => setIsAuthenticated(true)} />} />
         
-        <Route path="/" element={isAuthenticated ? <MainLayout /> : <Navigate to="/login" replace />}>
+        {/* Public Routes */}
+        <Route path="/" element={<AuthRoute><Landing /></AuthRoute>} />
+        
+        {/* Auth routes */}
+        <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
+        <Route path="/register" element={<AuthRoute><Signup /></AuthRoute>} />
+        
+        {/* Protected Dashboard Routes */}
+        <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="community" element={<Community />} />
           <Route path="scan" element={<Scanner />} />
           <Route path="chat" element={<Chatbot />} />
+          <Route path="community" element={<Community />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="notifications" element={<Notifications />} />
         </Route>
+
+        {/* Catch-all fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+
       </Routes>
     </AnimatePresence>
   );
@@ -36,7 +81,7 @@ function AppRoutes() {
 export default function App() {
   return (
     <Router>
-      <div className="bg-bgMain min-h-screen font-sans flex flex-col max-w-[420px] mx-auto shadow-2xl overflow-hidden relative sm:border sm:border-borderDark">
+      <div className="bg-bgMain min-h-screen font-sans w-full relative">
         <AppRoutes />
       </div>
     </Router>
